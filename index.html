@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My T2S - SpeechMaker Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Animasi spinner untuk loading */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #ffffff;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Styling tambahan untuk slider */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2563EB;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            margin-top: -8px; /* Disesuaikan agar pas dengan track */
+        }
+        /* Mengatasi scrollbar di body saat sidebar mobile aktif */
+        body.overflow-hidden {
+             overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="relative min-h-screen md:flex">
+        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black opacity-50 z-10 hidden md:hidden"></div>
+        
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-300 ease-in-out z-20">
+            <a href="#" class="text-white flex items-center space-x-3 px-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 01-2 2H4a2 2 0 01-2-2v-3z" />
+                </svg>
+                <span class="text-2xl font-bold">My T2S</span> </a>
+
+            <nav>
+                <a href="#" class="flex items-center py-2.5 px-4 rounded transition duration-200 bg-gray-900/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.858 5.858a3 3 0 014.243 0L12 7.757l1.9-1.9a3 3 0 014.242 0 3 3 0 010 4.243l-1.9 1.9-1.9 1.9a3 3 0 01-4.242 0l-1.9-1.9a3 3 0 010-4.243z" />
+                    </svg>
+                    <span>Generate Suara</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col">
+            <header class="flex justify-between md:hidden bg-white shadow-md p-4 sticky top-0 z-10">
+                 <span class="text-xl font-bold text-gray-800">My T2S</span> <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </header>
+            
+            <main class="flex-1 p-4 md:p-10">
+                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-2xl w-full mx-auto space-y-8">
+                    <div class="space-y-5">
+                        <div class="text-left pb-2 border-b">
+                            <h2 class="text-2xl font-bold text-gray-800">Langkah 1: Generate Script VO</h2>
+                            <p class="text-gray-500 mt-1">Buat script iklan profesional dalam hitungan detik.</p>
+                        </div>
+                        <div>
+                            <label for="product-desc" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Produk</label>
+                            <textarea id="product-desc" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: Kopi Gayo single origin, diproses secara natural, dengan notes cokelat dan buah-buahan."></textarea>
+                        </div>
+                        <div>
+                            <label for="product-usp" class="block text-sm font-medium text-gray-700 mb-1">Unique Selling Point (USP)</label>
+                            <textarea id="product-usp" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: 100% biji kopi Arabika pilihan, juara kontes kopi nasional."></textarea>
+                        </div>
+                        <div>
+                            <label for="script-quantity" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Script (Maksimal 100)</label>
+                            <input type="number" id="script-quantity" value="1" min="1" max="100" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                           <button id="generate-script-button" class="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-300 ease-in-out flex items-center justify-center disabled:bg-gray-400">
+                                <span class="mr-2">Buat Script</span>
+                                <div id="script-loading-spinner" class="spinner hidden"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="space-y-5">
+                        <div class="text-left pb-2 border-b">
+                             <h2 class="text-2xl font-bold text-gray-800">Langkah 2: Generate Audio</h2>
+                             <p class="text-gray-500 mt-1">Ubah script menjadi suara alami dengan AI.</p>
+                        </div>
+                        <div>
+                            <label for="text-input" class="block text-sm font-medium text-gray-700 mb-1">Teks untuk diucapkan (hasil script):</label>
+                            <textarea id="text-input" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-gray-50" placeholder="Script yang di-generate akan muncul di sini..."></textarea>
+                            <div id="char-count" class="text-right text-xs text-gray-500 mt-1 pr-1">0 karakter</div>
+                        </div>
+                        <div>
+                            <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Pilih Suara:</label>
+                            <select id="voice-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                        </div>
+                        <div>
+                            <label for="text-type-select" class="block text-sm font-medium text-gray-700 mb-1">Gaya Bicara:</label>
+                            <select id="text-type-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+                            <div>
+                                <label for="volume-range" class="block text-sm font-medium text-gray-700 mb-1">Volume:</label>
+                                <input type="range" id="volume-range" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="pitch-range" class="block text-sm font-medium text-gray-700 mb-1">Nada (Pitch):</label>
+                                <input type="range" id="pitch-range" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div>
+                                <label for="speed-range" class="block text-sm font-medium text-gray-700 mb-1">Kecepatan:</label>
+                                <input type="range" id="speed-range" min="0.25" max="4.0" value="1.0" step="0.05" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button id="speak-button" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 ease-in-out flex items-center justify-center disabled:bg-gray-400">
+                            <span class="mr-2">Ucapkan Teks</span>
+                            <div id="loading-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                    
+                    <div id="output-container" class="mt-6 space-y-4"></div>
+                    <div id="error-message" class="text-red-500 text-center mt-4 hidden p-3 bg-red-50 rounded-lg"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- KONFIGURASI API ---
+            const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=`;
+            const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=`;
+            // !!! API KEY ANDA TELAH DIMASUKKAN DI BAWAH INI !!!
+            const apiKey = "AIzaSyDb7O6oj3AEQaw_95-dlSaiHAPqgQdMvxc"; 
+            // ⚠️ Peringatan: Hapus kunci ini dan gunakan variabel lingkungan jika Anda akan mengunggah ke publik!
+
+            // --- DATA & ELEMEN DOM ---
+            const voices = [
+                // --- PILIHAN SUARA REMAJA YANG DIMINTA ---
+                { name: "Leda (Wanita, Muda/Remaja)", voiceName: "Leda" }, // Suara Youthful
+                { name: "Puck (Pria, Ceria/Remaja)", voiceName: "Puck" },    // Suara Upbeat
+                { name: "Aoede (Wanita, Ramah)", voiceName: "Aoede" }, 
+                { name: "Kore (Pria, Tegas)", voiceName: "Kore" },
+                { name: "Charon (Pria, Informatif)", voiceName: "Charon" }, 
+                { name: "Zephyr (Wanita, Cerah)", voiceName: "Zephyr" },
+                { name: "Sadachbia (Pria, Bersemangat)", voiceName: "Sadachbia" }, 
+                { name: "Vindemiatrix (Wanita, Lembut)", voiceName: "Vindemiatrix" }
+            ];
+
+            const textStyles = [
+                { name: "Normal (Default)", prompt: "" }, { name: "Alur Cerita", prompt: "Bacakan sebagai narator cerita: " },
+                { name: "Pembaca Berita", prompt: "Bacakan dengan nada formal seperti pembaca berita: " },
+                { name: "Bersemangat", prompt: "Ucapkan dengan nada ceria dan bersemangat: " },
+                { name: "Sedih", prompt: "Ucapkan dengan nada suara yang pelan dan sedih: " }
+            ];
+
+            // Elemen DOM untuk Script Generator
+            const productDesc = document.getElementById('product-desc');
+            const productUsp = document.getElementById('product-usp');
+            const scriptQuantity = document.getElementById('script-quantity');
+            const generateScriptButton = document.getElementById('generate-script-button');
+            const scriptLoadingSpinner = document.getElementById('script-loading-spinner');
+            
+            // Elemen DOM untuk Audio Generator
+            const textInput = document.getElementById('text-input'), voiceSelect = document.getElementById('voice-select'),
+                  textTypeSelect = document.getElementById('text-type-select'), speakButton = document.getElementById('speak-button'),
+                  loadingSpinner = document.getElementById('loading-spinner'), errorMessage = document.getElementById('error-message'),
+                  outputContainer = document.getElementById('output-container'), volumeRange = document.getElementById('volume-range'),
+                  pitchRange = document.getElementById('pitch-range'), speedRange = document.getElementById('speed-range'),
+                  charCount = document.getElementById('char-count');
+
+            // --- INISIALISASI ---
+            voices.forEach(v => { voiceSelect.add(new Option(v.name, v.voiceName)); });
+            textStyles.forEach(s => { textTypeSelect.add(new Option(s.name, s.prompt)); });
+
+            // --- EVENT LISTENERS ---
+            generateScriptButton.addEventListener('click', handleGenerateScript);
+            speakButton.addEventListener('click', handleSpeak);
+            textInput.addEventListener('input', () => { charCount.textContent = `${textInput.value.length} karakter`; });
+
+            // --- FUNGSI GENERATE SCRIPT (LANGKAH 1) ---
+            async function handleGenerateScript() {
+                const description = productDesc.value.trim();
+                const usp = productUsp.value.trim();
+                const quantity = parseInt(scriptQuantity.value, 10) || 1;
+
+                if (!description || !usp) {
+                    showError("Harap isi Deskripsi Produk dan USP.");
+                    return;
+                }
+                if (quantity < 1 || quantity > 100) {
+                    showError("Jumlah script harus antara 1 dan 100.");
+                    return;
+                }
+
+                setLoading(true, generateScriptButton, scriptLoadingSpinner, "Membuat script...");
+                hideError();
+
+                const prompt = `Anda adalah seorang copywriter iklan profesional. Buat ${quantity} variasi naskah voice over singkat yang unik untuk iklan digital berdasarkan informasi berikut.
+                Deskripsi Produk: "${description}"
+                Unique Selling Point (USP): "${usp}"
+                Setiap naskah HARUS mengikuti struktur dan durasi berikut dengan ketat:
+                1. Hook (2-3 detik pertama): Kalimat pembuka yang menarik perhatian.
+                2. Manfaat (8-9 detik berikutnya): Jelaskan manfaat utama produk berdasarkan deskripsi dan USP.
+                3. CTA (2-3 detik terakhir): Ajakan bertindak yang jelas dan singkat.
+                Pastikan total durasi setiap naskah sekitar 12-15 detik.
+                Hanya berikan teks naskahnya saja, tanpa judul atau label seperti "Hook:", "Manfaat:", atau "CTA:".
+                ${quantity > 1 ? 'Pisahkan setiap naskah yang berbeda dengan dua kali ganti baris (enter).' : ''}`;
+                
+                try {
+                    const response = await fetch(`${TEXT_API_URL}${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    if (!response.ok) {
+                        const errData = await response.json(); throw new Error(errData.error?.message || `Error HTTP: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    const script = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!script) throw new Error("Tidak ada script yang dihasilkan.");
+
+                    textInput.value = script.trim();
+                    charCount.textContent = `${script.trim().length} karakter`;
+                    textInput.focus();
+                } catch (err) {
+                    showError(`Gagal membuat script: ${err.message}`);
+                } finally {
+                    setLoading(false, generateScriptButton, scriptLoadingSpinner, "Buat Script");
+                }
+            }
+
+            // --- FUNGSI GENERATE AUDIO (LANGKAH 2) ---
+            async function handleSpeak() {
+                const textsToProcess = textInput.value.trim().split(/\n\s*\n/).filter(t => t.trim());
+                if (!textsToProcess.length) { showError("Script kosong, silakan generate script terlebih dahulu."); return; }
+                
+                setLoading(true, speakButton, loadingSpinner, "Memproses..."); 
+                hideError(); 
+                outputContainer.innerHTML = ''; 
+                
+                try {
+                    const audioFiles = await generateIndividualAudios(textsToProcess);
+                    if (audioFiles.length > 0) {
+                        displayAudioOutputs(audioFiles);
+                    } else {
+                        showError("Tidak ada audio yang berhasil dibuat.");
+                    }
+                } catch(err) {
+                    showError(err.message);
+                } finally {
+                    setLoading(false, speakButton, loadingSpinner, "Ucapkan Teks");
+                }
+            }
+            
+            async function generateIndividualAudios(texts) {
+                const audioFiles = [];
+                for (let i = 0; i < texts.length; i++) {
+                    setLoading(true, speakButton, loadingSpinner, `Memproses ${i + 1}/${texts.length}...`);
+                    try {
+                        const result = await callTtsAPI(texts[i]);
+                        const pcmData = base64ToArrayBuffer(result.audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, result.sampleRate);
+                        audioFiles.push({ name: `audio_${i + 1}.wav`, blob: wavBlob });
+                    } catch (error) {
+                        showErrorForPart(`Gagal pada bagian ${i+1}: ${error.message}`);
+                    }
+                }
+                return audioFiles;
+            }
+
+            async function callTtsAPI(text) {
+                const payload = {
+                    contents: [{ parts: [{ text: textTypeSelect.value + text }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceSelect.value } },
+                            audioConfig: { speakingRate: parseFloat(speedRange.value), pitch: parseInt(pitchRange.value), volumeGainDb: parseFloat(volumeRange.value) }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+                
+                const response = await fetch(`${TTS_API_URL}${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errData = await response.json(); throw new Error(errData.error?.message || `Error HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                if (!part?.inlineData?.data) throw new Error("Data audio tidak valid dari API.");
+                
+                return { audioData: part.inlineData.data, sampleRate: parseInt(part.inlineData.mimeType.match(/rate=(\d+)/)[1], 10) || 24000 };
+            }
+            
+            // --- FUNGSI UI & HELPER ---
+            function displayAudioOutputs(audioFiles) {
+                outputContainer.innerHTML = ''; 
+
+                audioFiles.forEach((file, index) => {
+                    const url = URL.createObjectURL(file.blob);
+                    const div = document.createElement('div');
+                    div.className = 'p-4 border rounded-lg space-y-3 bg-gray-50';
+                    div.innerHTML = `
+                        <p class="font-semibold text-gray-700">Hasil Audio ${index + 1}</p>
+                        <audio controls class="w-full rounded-lg"></audio>
+                    `;
+                    div.querySelector('audio').src = url;
+                    outputContainer.appendChild(div);
+                });
+
+                if (audioFiles.length > 0) {
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Unduh Semua (.zip)';
+                    downloadButton.className = 'w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center';
+                    downloadButton.onclick = () => downloadAllAsZip(audioFiles);
+                    outputContainer.appendChild(downloadButton);
+                }
+            }
+
+            async function downloadAllAsZip(audioFiles) {
+                const zip = new JSZip();
+                audioFiles.forEach(file => {
+                    zip.file(file.name, file.blob);
+                });
+                zip.generateAsync({type:"blob"}).then(function(content) {
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'my_t2s_audio.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            function setLoading(isLoading, button, spinner, text) {
+                button.disabled = isLoading;
+                button.querySelector('span').textContent = isLoading ? text : button.dataset.originalText || "Ucapkan Teks";
+                button.dataset.originalText = button.dataset.originalText || button.querySelector('span').textContent;
+                if (isLoading) { spinner.classList.remove('hidden'); } else { spinner.classList.add('hidden'); }
+            }
+
+            function showError(message) { 
+                errorMessage.textContent = `⚠️ Error: ${message}`;
+                errorMessage.classList.remove('hidden');
+            }
+            
+            function showErrorForPart(message) {
+                errorMessage.textContent += `\n${message}`; // Menambahkan pesan error baru ke yang sudah ada
+                errorMessage.classList.remove('hidden');
+            }
+
+            function hideError() { errorMessage.classList.add('hidden'); errorMessage.textContent = ''; }
+
+            // --- FUNGSI UTILITY KONVERSI AUDIO (dari PCM ke WAV) ---
+            function base64ToArrayBuffer(base64) {
+                const binary_string = window.atob(base64);
+                const len = binary_string.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binary_string.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+        
+            function pcmToWav(pcmData, sampleRate) {
+                const numChannels = 1;
+                const bytesPerSample = 2; // Int16 is 2 bytes
+
+                const buffer = new ArrayBuffer(44 + pcmData.byteLength);
+                const view = new DataView(buffer);
+
+                // RIFF identifier
+                writeString(view, 0, 'RIFF');
+                // file length
+                view.setUint32(4, 36 + pcmData.byteLength, true);
+                // 'WAVE' identifier
+                writeString(view, 8, 'WAVE');
+                // 'fmt ' chunk identifier
+                writeString(view, 12, 'fmt ');
+                // format chunk length
+                view.setUint32(16, 16, true);
+                // sample format (1 = PCM)
+                view.setUint16(20, 1, true);
+                // number of channels
+                view.setUint16(22, numChannels, true);
+                // sample rate
+                view.setUint32(24, sampleRate, true);
+                // byte rate (sample rate * block align)
+                view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+                // block align (channels * bytes per sample)
+                view.setUint16(32, numChannels * bytesPerSample, true);
+                // bits per sample
+                view.setUint16(34, 16, true);
+                // data chunk identifier
+                writeString(view, 36, 'data');
+                // data chunk length
+                view.setUint32(40, pcmData.byteLength, true);
+
+                // Write the PCM data
+                const offset = 44;
+                for (let i = 0; i < pcmData.length; i++) {
+                    view.setInt16(offset + i * 2, pcmData[i], true);
+                }
+
+                return new Blob([buffer], { type: 'audio/wav' });
+
+                function writeString(view, offset, string) {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                }
+            }
+            // --- Penanganan Menu Mobile (Tailwind) ---
+            const sidebar = document.getElementById('sidebar');
+            const menuButton = document.getElementById('mobile-menu-button');
+            const overlay = document.getElementById('mobile-menu-overlay');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            menuButton.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+        });
+    </script>
+
+</body>
+</html>
