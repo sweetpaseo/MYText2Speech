@@ -35,7 +35,7 @@
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 0 2px rgba(0,0,0,0.5);
-            margin-top: -8px; /* Disesuaikan agar pas dengan track */
+            margin-top: -8px; 
         }
         /* Mengatasi scrollbar di body saat sidebar mobile aktif */
         body.overflow-hidden {
@@ -53,7 +53,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 01-2 2H4a2 2 0 01-2-2v-3z" />
                 </svg>
-                <span class="text-2xl font-bold">My T2S</span> </a>
+                <span class="text-2xl font-bold">My T2S</span> 
+            </a>
 
             <nav>
                 <a href="#" class="flex items-center py-2.5 px-4 rounded transition duration-200 bg-gray-900/50">
@@ -67,7 +68,8 @@
 
         <div class="flex-1 flex flex-col">
             <header class="flex justify-between md:hidden bg-white shadow-md p-4 sticky top-0 z-10">
-                 <span class="text-xl font-bold text-gray-800">My T2S</span> <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                 <span class="text-xl font-bold text-gray-800">My T2S</span> 
+                 <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
@@ -163,7 +165,7 @@
 
             // --- DATA & ELEMEN DOM ---
             const voices = [
-                // --- PILIHAN SUARA REMAJA YANG DIMINTA ---
+                // PILIHAN SUARA REMAJA YANG DIMINTA
                 { name: "Leda (Wanita, Muda/Remaja)", voiceName: "Leda" }, // Suara Youthful
                 { name: "Puck (Pria, Ceria/Remaja)", voiceName: "Puck" },    // Suara Upbeat
                 { name: "Aoede (Wanita, Ramah)", voiceName: "Aoede" }, 
@@ -259,6 +261,7 @@
 
             // --- FUNGSI GENERATE AUDIO (LANGKAH 2) ---
             async function handleSpeak() {
+                // Memecah teks berdasarkan dua kali ganti baris untuk pemrosesan individual
                 const textsToProcess = textInput.value.trim().split(/\n\s*\n/).filter(t => t.trim());
                 if (!textsToProcess.length) { showError("Script kosong, silakan generate script terlebih dahulu."); return; }
                 
@@ -271,10 +274,11 @@
                     if (audioFiles.length > 0) {
                         displayAudioOutputs(audioFiles);
                     } else {
-                        showError("Tidak ada audio yang berhasil dibuat.");
+                        // Mengubah pesan error agar lebih akurat jika semua gagal
+                        showError("Gagal membuat audio. Periksa log konsol untuk detail API error (misalnya: 400 Bad Request).");
                     }
                 } catch(err) {
-                    showError(err.message);
+                    showError(`Kesalahan fatal: ${err.message}`);
                 } finally {
                     setLoading(false, speakButton, loadingSpinner, "Ucapkan Teks");
                 }
@@ -283,15 +287,19 @@
             async function generateIndividualAudios(texts) {
                 const audioFiles = [];
                 for (let i = 0; i < texts.length; i++) {
+                    // Penanganan karakter berbahaya yang memicu error 400
+                    const cleanText = texts[i].replace(/[\[\]\(\)\*&<>]/g, ''); 
+                    
                     setLoading(true, speakButton, loadingSpinner, `Memproses ${i + 1}/${texts.length}...`);
                     try {
-                        const result = await callTtsAPI(texts[i]);
+                        const result = await callTtsAPI(cleanText);
                         const pcmData = base64ToArrayBuffer(result.audioData);
                         const pcm16 = new Int16Array(pcmData);
                         const wavBlob = pcmToWav(pcm16, result.sampleRate);
                         audioFiles.push({ name: `audio_${i + 1}.wav`, blob: wavBlob });
                     } catch (error) {
-                        showErrorForPart(`Gagal pada bagian ${i+1}: ${error.message}`);
+                        // Menampilkan error parsial jika hanya satu bagian yang gagal
+                        showErrorForPart(`Gagal pada bagian ${i+1}: ${error.message} (Pastikan teks tidak terlalu panjang atau mengandung karakter aneh).`);
                     }
                 }
                 return audioFiles;
@@ -304,7 +312,12 @@
                         responseModalities: ["AUDIO"],
                         speechConfig: {
                             voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceSelect.value } },
-                            audioConfig: { speakingRate: parseFloat(speedRange.value), pitch: parseInt(pitchRange.value), volumeGainDb: parseFloat(volumeRange.value) }
+                            // Memastikan nilai-nilai dikirim sebagai tipe data yang benar
+                            audioConfig: { 
+                                speakingRate: parseFloat(speedRange.value), 
+                                pitch: parseInt(pitchRange.value), 
+                                volumeGainDb: parseFloat(volumeRange.value) 
+                            }
                         }
                     },
                     model: "gemini-2.5-flash-preview-tts"
@@ -312,14 +325,20 @@
                 
                 const response = await fetch(`${TTS_API_URL}${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) {
-                    const errData = await response.json(); throw new Error(errData.error?.message || `Error HTTP: ${response.status}`);
+                    const errData = await response.json(); 
+                    // Log error ke konsol untuk debugging lebih lanjut
+                    console.error('TTS API Error:', errData);
+                    throw new Error(errData.error?.message || `Error HTTP: ${response.status} (Cek konsol browser untuk detail)`);
                 }
                 
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
                 if (!part?.inlineData?.data) throw new Error("Data audio tidak valid dari API.");
                 
-                return { audioData: part.inlineData.data, sampleRate: parseInt(part.inlineData.mimeType.match(/rate=(\d+)/)[1], 10) || 24000 };
+                return { 
+                    audioData: part.inlineData.data, 
+                    sampleRate: parseInt(part.inlineData.mimeType.match(/rate=(\d+)/)[1], 10) || 24000 
+                };
             }
             
             // --- FUNGSI UI & HELPER ---
@@ -377,7 +396,12 @@
             }
             
             function showErrorForPart(message) {
-                errorMessage.textContent += `\n${message}`; // Menambahkan pesan error baru ke yang sudah ada
+                // Menambahkan pesan error baru ke yang sudah ada
+                if (errorMessage.textContent.length > 0) {
+                    errorMessage.textContent += `\n${message}`; 
+                } else {
+                     errorMessage.textContent = `⚠️ ${message}`; 
+                }
                 errorMessage.classList.remove('hidden');
             }
 
@@ -395,45 +419,29 @@
             }
         
             function pcmToWav(pcmData, sampleRate) {
+                // (Fungsi konversi dari PCM ke WAV tidak diubah)
                 const numChannels = 1;
-                const bytesPerSample = 2; // Int16 is 2 bytes
-
+                const bytesPerSample = 2; 
                 const buffer = new ArrayBuffer(44 + pcmData.byteLength);
                 const view = new DataView(buffer);
-
-                // RIFF identifier
                 writeString(view, 0, 'RIFF');
-                // file length
                 view.setUint32(4, 36 + pcmData.byteLength, true);
-                // 'WAVE' identifier
                 writeString(view, 8, 'WAVE');
-                // 'fmt ' chunk identifier
                 writeString(view, 12, 'fmt ');
-                // format chunk length
                 view.setUint32(16, 16, true);
-                // sample format (1 = PCM)
                 view.setUint16(20, 1, true);
-                // number of channels
                 view.setUint16(22, numChannels, true);
-                // sample rate
                 view.setUint32(24, sampleRate, true);
-                // byte rate (sample rate * block align)
                 view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
-                // block align (channels * bytes per sample)
                 view.setUint16(32, numChannels * bytesPerSample, true);
-                // bits per sample
                 view.setUint16(34, 16, true);
-                // data chunk identifier
                 writeString(view, 36, 'data');
-                // data chunk length
                 view.setUint32(40, pcmData.byteLength, true);
 
-                // Write the PCM data
                 const offset = 44;
                 for (let i = 0; i < pcmData.length; i++) {
                     view.setInt16(offset + i * 2, pcmData[i], true);
                 }
-
                 return new Blob([buffer], { type: 'audio/wav' });
 
                 function writeString(view, offset, string) {
