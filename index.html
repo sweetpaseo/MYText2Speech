@@ -159,15 +159,17 @@
             // --- KONFIGURASI API ---
             const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=`;
             const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=`;
-            // !!! API KEY ANDA TELAH DIMASUKKAN DI BAWAH INI !!!
-            const apiKey = "AIzaSyDb7O6oj3AEQaw_95-dlSaiHAPqgQdMvxc"; 
+            
+            // !!! KUNCI API BARU DITEMPATKAN DI SINI !!!
+            const apiKey = "AIzaSyAHnrj6hiehw4XusPK8IJCNMWgBpKb83KA"; 
+            
             // ⚠️ Peringatan: Hapus kunci ini dan gunakan variabel lingkungan jika Anda akan mengunggah ke publik!
 
             // --- DATA & ELEMEN DOM ---
             const voices = [
                 // PILIHAN SUARA REMAJA YANG DIMINTA
-                { name: "Leda (Wanita, Muda/Remaja)", voiceName: "Leda" }, // Suara Youthful
-                { name: "Puck (Pria, Ceria/Remaja)", voiceName: "Puck" },    // Suara Upbeat
+                { name: "Leda (Wanita, Muda/Remaja)", voiceName: "Leda" }, 
+                { name: "Puck (Pria, Ceria/Remaja)", voiceName: "Puck" },    
                 { name: "Aoede (Wanita, Ramah)", voiceName: "Aoede" }, 
                 { name: "Kore (Pria, Tegas)", voiceName: "Kore" },
                 { name: "Charon (Pria, Informatif)", voiceName: "Charon" }, 
@@ -419,7 +421,7 @@
             }
         
             function pcmToWav(pcmData, sampleRate) {
-                // (Fungsi konversi dari PCM ke WAV tidak diubah)
+                // (Fungsi konversi dari PCM ke WAV)
                 const numChannels = 1;
                 const bytesPerSample = 2; 
                 const buffer = new ArrayBuffer(44 + pcmData.byteLength);
